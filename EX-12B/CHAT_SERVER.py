@@ -1,30 +1,26 @@
-.import socket
-import threading
+import socket
 
-def handle_client(client_socket):
-    while True:
-        try:
-            message = client_socket.recv(1024).decode('utf-8')
-            if not message:
+def start_tcp_server(host='127.0.0.1', port=65432):
+    # Create a TCP socket
+    server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    server_socket.bind((host, port))
+    server_socket.listen(1)
+    
+    print(f"Server listening on {host}:{port}...")
+    
+    connection, client_address = server_socket.accept()
+    print(f"Connection established with {client_address}")
+    
+    try:
+        while True:
+            data = connection.recv(1024)
+            if not data:
                 break
-            print(f"Received message from client: {message}")
-            response = input("Type your message to client: ")  # Server can type a response
-            client_socket.send(response.encode('utf-8'))  # Send response back to client
-        except Exception as e:
-            print(f"An error occurred: {e}")
-            break
-    client_socket.close()
+            print(f"Client: {data.decode()}")
+            message = input("Server: ")
+            connection.sendall(message.encode())
+    finally:
+        connection.close()
 
-def start_server():
-    server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server.bind(('127.0.0.1', 12345))
-    server.listen(5)
-    print("Chat server started on 127.0.0.1:12345")
-    while True:
-        client_socket, addr = server.accept()
-        print(f"New connection from {addr}")
-        client_handler = threading.Thread(target=handle_client, args=(client_socket,))
-        client_handler.start()
-
-if _name_ == "_main_":
-    start_server()
+if __name__ == "__main__":
+    start_tcp_server()

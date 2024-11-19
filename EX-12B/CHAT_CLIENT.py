@@ -1,29 +1,19 @@
 import socket
-import threading
 
-def receive_messages(client_socket):
-    while True:
-        try:
-            message = client_socket.recv(1024).decode('utf-8')
-            if message:
-                print(f"Server: {message}")
-        except Exception as e:
-            print(f"An error occurred: {e}")
-            break
-
-def start_client():
+def start_tcp_client(host='127.0.0.1', port=65432):
+    # Create a TCP socket
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    host = '127.0.0.1'
-    port = 12345
     client_socket.connect((host, port))
-    print("Connected to the chat server.")
     
-    # Start a thread to listen for messages from the server
-    threading.Thread(target=receive_messages, args=(client_socket,), daemon=True).start()
-    
-    while True:
-        message = input("You: ")
-        client_socket.send(message.encode('utf-8'))
+    try:
+        while True:
+            message = input("Client: ")
+            client_socket.sendall(message.encode())  # Send message to server
+            
+            data = client_socket.recv(1024)  # Receive response from server
+            print(f"Server: {data.decode()}")
+    finally:
+        client_socket.close()
 
-if _name_ == '__main__':
-    start_client()
+if __name__ == "__main__":
+    start_tcp_client()
